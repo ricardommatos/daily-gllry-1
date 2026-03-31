@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CT-DESIGN</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--accent:#ff2d2d;--bg:#F5F5F5;--text:#111;--text-muted:#888}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Roboto Mono',monospace;background:var(--bg);color:var(--text);min-height:100vh;text-transform:uppercase;font-size:12px;letter-spacing:.05em;overflow-x:hidden}
+.fixed-circle{position:fixed;width:55vw;height:55vw;max-width:700px;max-height:700px;border-radius:50%;background:var(--accent);top:50%;left:50%;transform:translate(-50%,-50%);z-index:0;pointer-events:none;opacity:.92}
+.header{display:flex;justify-content:space-between;align-items:center;padding:24px 32px;position:sticky;top:0;background:var(--bg);z-index:100;border-bottom:1px solid rgba(0,0,0,.06)}
+.header-left{font-weight:700;font-size:13px;letter-spacing:.1em}
+.tag{color:var(--text-muted);font-size:11px}
+.toolbar{display:flex;justify-content:center;padding:16px 32px;gap:12px;border-bottom:1px solid rgba(0,0,0,.06);background:var(--bg);position:sticky;top:61px;z-index:99}
+button{font-family:'Roboto Mono',monospace;text-transform:uppercase;font-size:11px;letter-spacing:.08em;cursor:pointer;border:none;background:none;color:var(--text);padding:8px 14px;border-radius:4px;transition:all .15s}
+button:hover{background:rgba(0,0,0,.06)}
+button.active{background:var(--text);color:var(--bg)}
+.masonry{position:relative;z-index:1;padding:32px 24px;columns:4;column-gap:14px}
+.masonry-item{break-inside:avoid;margin-bottom:14px;cursor:pointer;transition:transform .2s}
+.masonry-item:hover{transform:scale(1.015)}
+.masonry-item img{width:100%;display:block}
+@media(max-width:1100px){.masonry{columns:3}}
+@media(max-width:750px){.masonry{columns:2}}
+@media(max-width:450px){.masonry{columns:1;padding:16px 12px}}
+.lightbox{display:none;position:fixed;inset:0;background:var(--bg);z-index:200;flex-direction:column}
+.lightbox.open{display:flex}
+.lightbox-header{display:flex;justify-content:space-between;align-items:center;padding:24px 32px;border-bottom:1px solid rgba(0,0,0,.06)}
+.lightbox-body{flex:1;display:flex;align-items:center;justify-content:center;position:relative;padding:40px;overflow:hidden}
+.lightbox-img-wrap{position:relative;max-width:75vw;max-height:75vh;display:flex;align-items:center;justify-content:center}
+.lightbox-img-wrap img{max-width:100%;max-height:75vh;object-fit:contain;border-radius:4px;position:relative;z-index:2}
+.lightbox-circle{position:absolute;width:85%;aspect-ratio:1;border-radius:50%;background:var(--accent);z-index:1;top:50%;left:50%;transform:translate(-50%,-50%);opacity:.92}
+.lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);font-size:24px;color:var(--text-muted);cursor:pointer;padding:16px;user-select:none;z-index:10;background:none;border:none;font-family:'Roboto Mono',monospace}
+.lightbox-nav:hover{color:var(--text);background:none}
+.lightbox-nav.prev{left:24px}.lightbox-nav.next{right:24px}
+.lightbox-dots{display:flex;justify-content:center;gap:8px;padding:24px}
+.dot{width:8px;height:8px;border-radius:50%;background:rgba(0,0,0,.15);cursor:pointer;transition:all .2s;border:none;padding:0}
+.dot:hover{background:rgba(0,0,0,.3)}.dot.active{background:var(--accent)}
+.lightbox-counter{color:var(--text-muted);font-size:11px}
+</style>
+</head>
+<body>
+<div class="fixed-circle"></div>
+<header class="header"><div class="header-left">CT-DESIGN</div><div><span class="tag">#CT-DESIGN</span></div></header>
+<div class="toolbar">
+<button id="btn-grid" class="active" onclick="setView('grid')">Grid</button>
+<button id="btn-single" onclick="setView('single')">Single</button>
+</div>
+<main><div class="masonry" id="masonry"></div></main>
+<div class="lightbox" id="lightbox">
+<div class="lightbox-header"><div style="font-weight:700;font-size:13px;letter-spacing:.1em">CT-DESIGN</div><div style="display:flex;align-items:center;gap:16px"><span class="lightbox-counter" id="lightbox-counter"></span><button onclick="closeLightbox()">Close</button></div></div>
+<div class="lightbox-body"><button class="lightbox-nav prev" onclick="navImage(-1)">&lt;</button><div class="lightbox-img-wrap"><div class="lightbox-circle"></div><img id="lightbox-img" src="" alt=""></div><button class="lightbox-nav next" onclick="navImage(1)">&gt;</button></div>
+<div class="lightbox-dots" id="lightbox-dots"></div>
+</div>
+<script>
+const imagePaths=["images/img-001.webp","images/img-002.webp","images/img-003.webp","images/img-004.webp","images/img-005.webp","images/img-006.webp","images/img-007.webp","images/img-008.webp","images/img-009.webp","images/img-010.webp"];let currentIndex=0,currentView='grid';
+function renderGrid(){const m=document.getElementById('masonry');m.innerHTML='';imagePaths.forEach((src,i)=>{const item=document.createElement('div');item.className='masonry-item';item.onclick=()=>openLightbox(i);const el=document.createElement('img');el.src=src;el.alt='Image '+(i+1);item.appendChild(el);m.appendChild(item)})}
+function setView(mode){currentView=mode;document.getElementById('btn-grid').classList.toggle('active',mode==='grid');document.getElementById('btn-single').classList.toggle('active',mode==='single');if(mode==='grid')closeLightbox();else if(imagePaths.length>0)openLightbox(0)}
+function openLightbox(i){currentIndex=i;currentView='single';document.getElementById('btn-grid').classList.remove('active');document.getElementById('btn-single').classList.add('active');document.getElementById('lightbox').classList.add('open');updateLightbox()}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('open');currentView='grid';document.getElementById('btn-grid').classList.add('active');document.getElementById('btn-single').classList.remove('active')}
+function updateLightbox(){document.getElementById('lightbox-img').src=imagePaths[currentIndex];document.getElementById('lightbox-counter').textContent=(currentIndex+1)+' / '+imagePaths.length;const d=document.getElementById('lightbox-dots');d.innerHTML='';imagePaths.forEach((_,i)=>{const dot=document.createElement('button');dot.className='dot'+(i===currentIndex?' active':'');dot.onclick=()=>{currentIndex=i;updateLightbox()};d.appendChild(dot)})}
+function navImage(dir){currentIndex=(currentIndex+dir+imagePaths.length)%imagePaths.length;updateLightbox()}
+document.addEventListener('keydown',e=>{if(currentView==='single'){if(e.key==='ArrowRight')navImage(1);if(e.key==='ArrowLeft')navImage(-1);if(e.key==='Escape')setView('grid')}});
+renderGrid();
+</script>
+</body></html>
